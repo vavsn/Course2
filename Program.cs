@@ -1,143 +1,282 @@
 ﻿using System;
 
-namespace Task1
+namespace TwoLinkedList
 {
-    class Program
+
+    public class Node
     {
-        /// <summary>
-        /// класс для проведения тестирования
-        /// </summary>
-        public class TestCase
+        public Node(int value)
         {
-            public int X { get; set; }
-            public string Expected { get; set; }
-            public Exception ExpectedException { get; set; }
+            Value = value;
+        }
+
+        public int Value { get; set; }
+        public Node NextNode { get; set; }
+        public Node PrevNode { get; set; }
+    }
+
+    //Начальную и конечную ноду нужно хранить в самой реализации интерфейса
+    public interface ILinkedList
+    {
+        int GetCount(); // возвращает количество элементов в списке
+        void AddNode(int value);  // добавляет новый элемент списка
+        void AddNodeAfter(Node node, int value); // добавляет новый элемент списка после определённого элемента
+        void RemoveNode(int index); // удаляет элемент по порядковому номеру
+        void RemoveNode(Node node); // удаляет указанный элемент
+        Node FindNode(int searchValue); // ищет элемент по его значению
+    }
+
+    class TLL : ILinkedList
+    {
+        Node head; // головной/первый элемент
+        Node tail; // последний/хвостовой элемент
+        int count;  // количество элементов в списке
+
+        /// <summary>
+        /// метод добавляет элемент value в конеч списка
+        /// </summary>
+        /// <param name="value"></param>
+        public void AddNode(int value)
+        {
+            Node tll = new Node(value);
+            if (head == null)
+                head = tll;
+            else
+            {
+                tail.NextNode = tll;
+                tll.PrevNode = tail;
+            }
+            tail = tll;
+            count++;
         }
 
         /// <summary>
-        /// метод проведения теста корректности работы процедуры PrimeNumber
+        /// метод добавляет элемент value после элемента node
         /// </summary>
-        /// <param name="testCase"></param>
-        static void TestPrimeNumber(TestCase testCase)
+        /// <param name="node"></param>
+        /// <param name="value"></param>
+        public void AddNodeAfter(Node node, int value)
         {
-            try
-            {
-                var actual = PrimeNumber(testCase.X);
-
-                if (string.Compare( actual, testCase.Expected) == 0)
-                {
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-            catch (Exception ex)
-            {
-                if (testCase.ExpectedException != null)
-                {
-                    //TODO add type exception tests;
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
+            Node tll = new Node(value);
+            tll.PrevNode = node;
+            tll.NextNode = node.NextNode;
+            if (node.NextNode != null)
+                node.NextNode.PrevNode = tll;
+            node.NextNode = tll;
+            count++;
         }
 
         /// <summary>
-        /// строковое представление результатов работы процедуры PrimeNumber
+        /// метод поиска элемента списка на позиции searchPos
         /// </summary>
-        private static string NotPrime = "НЕ ПРОСТОЕ";
-        private static string Prime = "ПРОСТОЕ";
-
-        /// <summary>
-        /// метод определения простое число введено пользователем или нет
-        /// </summary>
-        /// <param name="num"></param>
+        /// <param name="searchPos"></param>
         /// <returns></returns>
-        static string PrimeNumber(int num)
+        public Node ItemPos(int searchPos)
         {
-            string resume = NotPrime;
-            int d = 0;
-            int i = 2;
-            while (i < num)
+            if (searchPos < 0 | searchPos > count)
             {
-                if (num % i == 0)
-                    d++;
+                Console.WriteLine($"Аргумент {searchPos} находится за пределами диапазона 0 - {count}");
+                return null;
+            }
+
+            Node current = head;
+
+            int i = 0;
+            // поиск узла
+            while (current.NextNode != null)
+            {
+                if (i.Equals(searchPos))
+                    break;
+                current = current.NextNode;
                 i++;
             }
+            return current;
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// метод ищет элемент списка по значению
+        /// </summary>
+        /// <param name="searchValue"></param>
+        /// <returns></returns>
+        public Node FindNode(int searchValue)
+        {
+            Node current = head;
 
-            if (d == 0)
-                resume = Prime;
-
-            return resume;
+            // поиск узла
+            while (current != null)
+            {
+                if (current.Value.Equals(searchValue))
+                    break;
+                current = current.NextNode;
+            }
+            return current;
         }
 
-    static void Main(string[] args)
+        /// <summary>
+        /// метод возвращает общее количество элементов в списке
+        /// </summary>
+        /// <returns></returns>
+        public int GetCount()
         {
-            Console.WriteLine("Программа проверки простое число или нет.");
-            Console.WriteLine("Введите целое число: ");
-            int askNum = 0;
-            bool success = Int32.TryParse(Console.ReadLine(), out askNum);
-            // проверяемое число должно быть целым, иначе генерируем исключение
-            if (!success)
+            return count;
+        }
+
+        /// <summary>
+        /// удаление элемента с индексом index
+        /// </summary>
+        /// <param name="index"></param>
+        public void RemoveNode(int index)
+        {
+            Node current = ItemPos(index);
+            if (current != null)
             {
-                throw new ArgumentException("Не является целым");
+                // если узел не последний
+                if (current.NextNode != null)
+                {
+                    current.NextNode.PrevNode = current.PrevNode;
+                }
+                else
+                {
+                    // если последний, переустанавливаем tail
+                    tail = current.PrevNode;
+                }
+
+                // если узел не первый
+                if (current.PrevNode != null)
+                {
+                    current.PrevNode.NextNode = current.NextNode;
+                }
+                else
+                {
+                    // если первый, переустанавливаем head
+                    head = current.NextNode;
+                }
+                count--;
+                return;
+            }
+            throw new NotImplementedException();
+
+        }
+
+        /// <summary>
+        /// удаление элемента node
+        /// </summary>
+        /// <param name="node"></param>
+        public void RemoveNode(Node node)
+        {
+            Node current = node;
+            if (current != null)
+            {
+                // если узел не последний
+                if (current.NextNode != null)
+                {
+                    current.NextNode.PrevNode = current.PrevNode;
+                }
+                else
+                {
+                    // если последний, переустанавливаем tail
+                    tail = current.PrevNode;
+                }
+
+                // если узел не первый
+                if (current.PrevNode != null)
+                {
+                    current.PrevNode.NextNode = current.NextNode;
+                }
+                else
+                {
+                    // если первый, переустанавливаем head
+                    head = current.NextNode;
+                }
+                count--;
+                return;
+            }
+        }
+
+    }
+
+    class Program
+    {
+
+        static void Main(string[] args)
+        {
+            TLL linkedList = new TLL();
+            // добавление элементов
+            linkedList.AddNode(1);
+            linkedList.AddNode(3);
+            linkedList.AddNode(4);
+            linkedList.AddNode(2);
+            linkedList.AddNode(6);
+            linkedList.AddNode(5);
+            // контрольный вывод
+            int cnt = linkedList.GetCount();
+            Console.WriteLine($"Количество элементов списка = {cnt}" );
+            for (int i = 0; i < cnt; i++)
+            {
+                Console.WriteLine($"Элемент списка № {i+1} = {linkedList.ItemPos(i).Value}");
             }
 
-            // проводим проверку
-            string checkNumber = PrimeNumber(askNum);
-
-            Console.WriteLine($"Введено {checkNumber} число {askNum} ");
-
-            // проводим тесты корректности работы процедуры PrimeNumber
-            var testCase = new TestCase()
+            // добавление элемента item в конец списка
+            int item = 7;
+            Console.WriteLine($"Добавим элемент <{item}>");
+            linkedList.AddNode(item);
+            // контрольный вывод
+            cnt = linkedList.GetCount();
+            Console.WriteLine($"Количество элементов списка = {cnt}");
+            for (int i = 0; i < cnt; i++)
             {
-                X = 4,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
+                Console.WriteLine($"Элемент списка № {i + 1} = {linkedList.ItemPos(i).Value}");
+            }
 
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
+            // удаление элемента, значение которого указывается в item
+            item = 8;
+            Console.WriteLine($"Удалим элемент со значением <{item}>");
+            Node removeNode = linkedList.FindNode(item);
+            if (removeNode != null)
             {
-                X = 6,
-                Expected = Prime,
-                ExpectedException = null
-            };
+                Console.WriteLine($"Элемент со значением <{item}> <{linkedList.Item(item).Value}>");
+                linkedList.RemoveNode(removeNode);
+                // контрольный вывод
+                cnt = linkedList.GetCount();
+                Console.WriteLine($"Количество элементов списка = {cnt}");
+                for (int i = 0; i < cnt; i++)
+                {
+                    Console.WriteLine($"Элемент списка № {i + 1} = {linkedList.ItemPos(i).Value}");
+                }
+            }
+            else
+                Console.WriteLine($"Элемент со значением <{item}> в списке не найден");
 
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
+            // удаление элемента с индексом index 
+            int index = 1;
+            Console.WriteLine($"Удалим элемент с индексом <{index}>");
+            Console.WriteLine($"Элемент с индексом <{index}> <{linkedList.ItemPos(index-1).Value}>");
+            linkedList.RemoveNode(linkedList.ItemPos(index-1));
+            // контрольный вывод
+            cnt = linkedList.GetCount();
+            Console.WriteLine($"Количество элементов списка = {cnt}");
+            for (int i = 0; i < cnt; i++)
             {
-                X = 3,
-                Expected = Prime,
-                ExpectedException = null
-            };
+                Console.WriteLine($"Элемент списка № {i + 1} = {linkedList.ItemPos(i).Value}");
+            }
 
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
+            // добавление элемента item после элемента списка с индексом index
+            index = linkedList.GetCount();
+            item = 9;
+            Console.WriteLine($"Добавим элемент <{item}> после элемента с индексом <{index}>");
+            Node afterNode = linkedList.ItemPos(index - 1);
+            if (afterNode != null)
             {
-                X = 823,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
+                Console.WriteLine($"Элемент с индексом <{index}> <{afterNode.Value}>");
+                linkedList.AddNodeAfter(linkedList.ItemPos(index - 1), item);
+                // контрольный вывод
+                cnt = linkedList.GetCount();
+                Console.WriteLine($"Количество элементов списка = {cnt}");
+                for (int i = 0; i < cnt; i++)
+                {
+                    Console.WriteLine($"Элемент списка № {i + 1} = {linkedList.ItemPos(i).Value}");
+                }
+            }
         }
     }
 }
