@@ -1,143 +1,59 @@
 ﻿using System;
 
-namespace Task1
+namespace BinarySearch
 {
     class Program
     {
         /// <summary>
-        /// класс для проведения тестирования
+        /// метод бинарного поиска значаения
         /// </summary>
-        public class TestCase
-        {
-            public int X { get; set; }
-            public string Expected { get; set; }
-            public Exception ExpectedException { get; set; }
-        }
-
-        /// <summary>
-        /// метод проведения теста корректности работы процедуры PrimeNumber
-        /// </summary>
-        /// <param name="testCase"></param>
-        static void TestPrimeNumber(TestCase testCase)
-        {
-            try
-            {
-                var actual = PrimeNumber(testCase.X);
-
-                if (string.Compare( actual, testCase.Expected) == 0)
-                {
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-            catch (Exception ex)
-            {
-                if (testCase.ExpectedException != null)
-                {
-                    //TODO add type exception tests;
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-        }
-
-        /// <summary>
-        /// строковое представление результатов работы процедуры PrimeNumber
-        /// </summary>
-        private static string NotPrime = "НЕ ПРОСТОЕ";
-        private static string Prime = "ПРОСТОЕ";
-
-        /// <summary>
-        /// метод определения простое число введено пользователем или нет
-        /// </summary>
-        /// <param name="num"></param>
+        /// <param name="inputArray"></param>
+        /// <param name="searchValue"></param>
         /// <returns></returns>
-        static string PrimeNumber(int num)
+        public static int BinarySearch(int[] inputArray, int searchValue)
         {
-            string resume = NotPrime;
-            int d = 0;
-            int i = 2;
-            while (i < num)
+            int min = 0;
+            int max = inputArray.Length - 1;
+            while (min <= max)
             {
-                if (num % i == 0)
-                    d++;
-                i++;
+                int mid = (min + max) / 2;
+                if (searchValue == inputArray[mid])
+                {
+                    return mid;
+                }
+                else if (searchValue < inputArray[mid])
+                {
+                    max = mid - 1;
+                }
+                else
+                {
+                    min = mid + 1;
+                }
             }
-
-            if (d == 0)
-                resume = Prime;
-
-            return resume;
+            return -1;
         }
-
-    static void Main(string[] args)
+        static void Main(string[] args)
         {
-            Console.WriteLine("Программа проверки простое число или нет.");
-            Console.WriteLine("Введите целое число: ");
-            int askNum = 0;
-            bool success = Int32.TryParse(Console.ReadLine(), out askNum);
-            // проверяемое число должно быть целым, иначе генерируем исключение
-            if (!success)
-            {
-                throw new ArgumentException("Не является целым");
-            }
+            // заполнение первоначального массива
+            int[] mass1 = new int[100];
+            for (int i = 0; i < 100; i++)
+                mass1[i] = i;
+            for (int i = 0; i < 100; i++)
+                Console.WriteLine("{0} {1}", i, mass1[i]);
 
-            // проводим проверку
-            string checkNumber = PrimeNumber(askNum);
+            // задаём искомое значение
+            int srch = 3;
 
-            Console.WriteLine($"Введено {checkNumber} число {askNum} ");
+            // производим поиск
+            int resultSearch = BinarySearch(mass1, srch);
 
-            // проводим тесты корректности работы процедуры PrimeNumber
-            var testCase = new TestCase()
-            {
-                X = 4,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
+            // вывод резальтатов поиска
+            if (resultSearch != -1)
+                Console.WriteLine($"Искали значение {resultSearch}");
+            else
+                Console.WriteLine($"Искомое значение {srch} не найдено");
 
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 6,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 3,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
+            Console.ReadKey();
         }
     }
 }
