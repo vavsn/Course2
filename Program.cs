@@ -1,143 +1,156 @@
 ﻿using System;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
-namespace Task1
+
+namespace Benchmark
 {
-    class Program
+    public class Program
     {
-        /// <summary>
-        /// класс для проведения тестирования
-        /// </summary>
-        public class TestCase
+
+        public class TheBenchmark
         {
-            public int X { get; set; }
-            public string Expected { get; set; }
-            public Exception ExpectedException { get; set; }
+            /// <summary>
+            /// класс хранения информации по точке в пространстве
+            /// </summary>
+            public class PointClass
+            {
+                public float X;
+                public float Y;
+            }
+
+            /// <summary>
+            /// структура хранения информации по точке в пространстве
+            /// </summary>
+            public struct PointStruct
+            {
+                public float X;
+                public float Y;
+            }
+
+            public static PointClass[] p1 = DistClass; // первый набор точек ссылочного типа
+            public static PointClass[] p2 = DistClass; // второй набор точек ссылочного типа
+            public static PointStruct[] ps1 = DistStruct; // первый набор точек значимого типа
+            public static PointStruct[] ps2 = DistStruct; // первый набор точек значимого типа
+
+            /// <summary>
+            /// генерация массива дистанций для расчетов
+            /// </summary>
+            public static PointClass[] DistClass
+            {
+                get
+                {
+                    PointClass[] d = new PointClass[100];
+                    Random rnd = new Random();
+                    int l = d.Length;
+                    for (int i = 0; i < l; i++)
+                    {
+                        d[i] = new PointClass();
+                        d[i].X = (float)rnd.NextDouble() * 100;
+                        d[i].Y = (float)rnd.NextDouble() * 100;
+                    }
+                    return d;
+                }
+            }
+            public static PointStruct[] DistStruct
+            {
+                get
+                {
+                    PointStruct[] d = new PointStruct[100];
+                    Random rnd = new Random();
+                    int l = d.Length;
+                    for (int i = 0; i < l; i++)
+                    {
+                        d[i] = new PointStruct();
+                        d[i].X = (float)rnd.NextDouble() * 100;
+                        d[i].Y = (float)rnd.NextDouble() * 100;
+                    }
+                    return d;
+                }
+            }
+
+            /// <summary>
+            /// функции расчета дистанции между точками
+            /// </summary>
+            /// <param name="pointOne"></param>
+            /// <param name="pointTwo"></param>
+            /// <returns></returns>
+            public float PointDistance(PointStruct pointOne, PointStruct pointTwo)
+            {
+                float x = pointOne.X - pointTwo.X;
+                float y = pointOne.Y - pointTwo.Y;
+                return MathF.Sqrt((x * x) + (y * y));
+            }
+            public float PointDistance(PointClass pointOne, PointClass pointTwo)
+            {
+                float x = pointOne.X - pointTwo.X;
+                float y = pointOne.Y - pointTwo.Y;
+                return MathF.Sqrt((x * x) + (y * y));
+            }
+            public float PointDistanceShort(PointStruct pointOne, PointStruct pointTwo)
+            {
+                float x = pointOne.X - pointTwo.X;
+                float y = pointOne.Y - pointTwo.Y;
+                return (x * x) + (y * y);
+            }
+
+            /// <summary>
+            /// методы проведения замеров производительности
+            /// </summary>
+            /// <returns></returns>
+            [Benchmark(Description = "Raschet1")]
+            public float Ras1()
+            {
+                // Обычный метод расчёта дистанции со ссылочным типом (PointClass — координаты типа float).
+                float res = 0;
+                int l = p1.Length;
+                for (int i = 0; i < l; i++)
+                {
+                    res += PointDistance(p1[i], p2[i]);
+                }
+                return res;
+            }
+            [Benchmark(Description = "Raschet2")]
+            public float Ras2()
+            {
+                // Обычный метод расчёта дистанции со ссылочным типом (PointClass — координаты типа float).
+                float res = 0;
+                int l = p1.Length;
+                for (int i = 0; i < l; i++)
+                {
+                    res += PointDistance(ps1[i], ps2[i]);
+                }
+                return res;
+            }
+            [Benchmark(Description = "Raschet3")]
+            public double Ras3()
+            {
+                // Обычный метод расчёта дистанции со значимым типом (PointStruct — координаты типа double).
+                double res = 0;
+                int l = p1.Length;
+                for (int i = 0; i < l; i++)
+                {
+                    res += PointDistance(ps1[i], ps2[i]);
+                }
+                return res;
+            }
+            [Benchmark(Description = "Raschet4")]
+            public float Ras4()
+            {
+                // Метод расчёта дистанции без квадратного корня со значимым типом (PointStruct — координаты типа float)
+                float res = 0;
+                int l = p1.Length;
+                for (int i = 0; i < l; i++)
+                {
+                    res += PointDistanceShort(ps1[i], ps2[i]);
+                }
+                return res;
+            }
+
         }
-
-        /// <summary>
-        /// метод проведения теста корректности работы процедуры PrimeNumber
-        /// </summary>
-        /// <param name="testCase"></param>
-        static void TestPrimeNumber(TestCase testCase)
+        static void Main(string[] args)
         {
-            try
-            {
-                var actual = PrimeNumber(testCase.X);
-
-                if (string.Compare( actual, testCase.Expected) == 0)
-                {
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-            catch (Exception ex)
-            {
-                if (testCase.ExpectedException != null)
-                {
-                    //TODO add type exception tests;
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-        }
-
-        /// <summary>
-        /// строковое представление результатов работы процедуры PrimeNumber
-        /// </summary>
-        private static string NotPrime = "НЕ ПРОСТОЕ";
-        private static string Prime = "ПРОСТОЕ";
-
-        /// <summary>
-        /// метод определения простое число введено пользователем или нет
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        static string PrimeNumber(int num)
-        {
-            string resume = NotPrime;
-            int d = 0;
-            int i = 2;
-            while (i < num)
-            {
-                if (num % i == 0)
-                    d++;
-                i++;
-            }
-
-            if (d == 0)
-                resume = Prime;
-
-            return resume;
-        }
-
-    static void Main(string[] args)
-        {
-            Console.WriteLine("Программа проверки простое число или нет.");
-            Console.WriteLine("Введите целое число: ");
-            int askNum = 0;
-            bool success = Int32.TryParse(Console.ReadLine(), out askNum);
-            // проверяемое число должно быть целым, иначе генерируем исключение
-            if (!success)
-            {
-                throw new ArgumentException("Не является целым");
-            }
-
-            // проводим проверку
-            string checkNumber = PrimeNumber(askNum);
-
-            Console.WriteLine($"Введено {checkNumber} число {askNum} ");
-
-            // проводим тесты корректности работы процедуры PrimeNumber
-            var testCase = new TestCase()
-            {
-                X = 4,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 6,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 3,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
+            BenchmarkRunner.Run<TheBenchmark>();
         }
     }
 }
