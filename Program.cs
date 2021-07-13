@@ -1,143 +1,99 @@
 ﻿using System;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
-namespace Task1
+namespace HashSetString
 {
-    class Program
+    public class Program
     {
-        /// <summary>
-        /// класс для проведения тестирования
-        /// </summary>
-        public class TestCase
+        public class TheBenchmark
         {
-            public int X { get; set; }
-            public string Expected { get; set; }
-            public Exception ExpectedException { get; set; }
+            /// <summary>
+            /// класс для работы
+            /// </summary>
+            public class HashString
+            {
+                public string Str { get; set; }
+                public override bool Equals(object obj)
+                {
+                    var HS = obj as HashString;
+
+                    if (HS == null)
+                        return false;
+
+                    return string.Compare(Str, HS.Str) == 0 ? true : false;
+                }
+
+                public override int GetHashCode()
+                {
+                    int strHashCode = string.Compare(Str, string.Empty) == 0 ? Str.GetHashCode() : 0;
+                    return strHashCode;
+                }
+            }
+
+            /// <summary>
+            /// генерируем случайные слова
+            /// </summary>
+            public static string GetRandomString()
+            {
+                int num_letters = 20; // количество символов в строке
+                char[] letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray(); // массив букв, которые будем использовать
+
+                Random rand = new Random(); // cоздаем генератор случайных чисел
+
+
+                string word = string.Empty; // переменная для хранения строки
+                for (int j = 1; j <= num_letters; j++)
+                {
+                    // случайное числ от 0 до 25
+                    // для выбора буквы из массива букв.
+                    int letter_num = rand.Next(0, letters.Length - 1);
+
+                    word += letters[letter_num]; // добавляем символ в строку
+                }
+
+                // Добавьте слово в список.
+                return word;
+            }
+
+            public static string[] strArr = new string[10000];
+            public static HashSet<HashString> HS = new HashSet<HashString>();
+            public static string sF = string.Empty; // переменная для хранения строки для поиска
+
+            public TheBenchmark()
+            {
+                int l = strArr.Length; // количество циклов для формирования наборов данных
+                string s = string.Empty; // временная переменная для хранения сгенерированной случайной строки
+                for (int j = 0; j < l; j++)
+                {
+                    s = GetRandomString();
+                    strArr[j] = s;
+                    var hs = new HashString() { Str = s };
+                    HS.Add(hs);
+                    if (j == 4591)
+                        sF = s;
+                }
+            }
+
+            [Benchmark(Description = "SearchHS")]
+            public bool searchHS()
+            {
+                var searchHS = new HashString() { Str = sF };
+                return HS.Contains(searchHS);
+            }
+
+            [Benchmark(Description = "SearchSTR")]
+            public int searchStr()
+            {
+                var searchStr = Array.IndexOf(strArr, sF);
+                return searchStr;
+            }
         }
 
-        /// <summary>
-        /// метод проведения теста корректности работы процедуры PrimeNumber
-        /// </summary>
-        /// <param name="testCase"></param>
-        static void TestPrimeNumber(TestCase testCase)
+        static void Main(string[] args)
         {
-            try
-            {
-                var actual = PrimeNumber(testCase.X);
-
-                if (string.Compare( actual, testCase.Expected) == 0)
-                {
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-            catch (Exception ex)
-            {
-                if (testCase.ExpectedException != null)
-                {
-                    //TODO add type exception tests;
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
-            }
-        }
-
-        /// <summary>
-        /// строковое представление результатов работы процедуры PrimeNumber
-        /// </summary>
-        private static string NotPrime = "НЕ ПРОСТОЕ";
-        private static string Prime = "ПРОСТОЕ";
-
-        /// <summary>
-        /// метод определения простое число введено пользователем или нет
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        static string PrimeNumber(int num)
-        {
-            string resume = NotPrime;
-            int d = 0;
-            int i = 2;
-            while (i < num)
-            {
-                if (num % i == 0)
-                    d++;
-                i++;
-            }
-
-            if (d == 0)
-                resume = Prime;
-
-            return resume;
-        }
-
-    static void Main(string[] args)
-        {
-            Console.WriteLine("Программа проверки простое число или нет.");
-            Console.WriteLine("Введите целое число: ");
-            int askNum = 0;
-            bool success = Int32.TryParse(Console.ReadLine(), out askNum);
-            // проверяемое число должно быть целым, иначе генерируем исключение
-            if (!success)
-            {
-                throw new ArgumentException("Не является целым");
-            }
-
-            // проводим проверку
-            string checkNumber = PrimeNumber(askNum);
-
-            Console.WriteLine($"Введено {checkNumber} число {askNum} ");
-
-            // проводим тесты корректности работы процедуры PrimeNumber
-            var testCase = new TestCase()
-            {
-                X = 4,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 6,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 3,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
+            BenchmarkRunner.Run<TheBenchmark>();
         }
     }
 }
