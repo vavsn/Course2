@@ -1,143 +1,60 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace Task1
+namespace CalcPath
 {
     class Program
     {
-        /// <summary>
-        /// класс для проведения тестирования
-        /// </summary>
-        public class TestCase
-        {
-            public int X { get; set; }
-            public string Expected { get; set; }
-            public Exception ExpectedException { get; set; }
-        }
+        const int N = 5;
+        const int M = 10;
 
-        /// <summary>
-        /// метод проведения теста корректности работы процедуры PrimeNumber
-        /// </summary>
-        /// <param name="testCase"></param>
-        static void TestPrimeNumber(TestCase testCase)
+        static void Print2(int n, int m, int[,] a)
         {
-            try
+            int i, j;
+            string format = "{0," + (a[n - 1, m - 1].ToString().Length + 1).ToString() + "}";
+            for (i = 0; i < n; i++)
             {
-                var actual = PrimeNumber(testCase.X);
-
-                if (string.Compare( actual, testCase.Expected) == 0)
-                {
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
+                for (j = 0; j < m; j++)
+                    Console.Write(string.Format(format, a[i, j]));
+                Console.Write("\r\n");
             }
-            catch (Exception ex)
+        }
+        static void Print3(int n, int m, int[,] a)
+        {
+            int i, j;
+            int maxLength = a[n - 1, m - 1].ToString().Length + 1;
+            for (i = 0; i < n; i++)
             {
-                if (testCase.ExpectedException != null)
-                {
-                    //TODO add type exception tests;
-                    Console.WriteLine("VALID TEST");
-                }
-                else
-                {
-                    Console.WriteLine("INVALID TEST");
-                }
+                for (j = 0; j < m; j++)
+                    Console.Write(string.Format("{0," + maxLength.ToString() + "}", a[i, j]));
+                Console.Write("\r\n");
             }
         }
 
-        /// <summary>
-        /// строковое представление результатов работы процедуры PrimeNumber
-        /// </summary>
-        private static string NotPrime = "НЕ ПРОСТОЕ";
-        private static string Prime = "ПРОСТОЕ";
-
-        /// <summary>
-        /// метод определения простое число введено пользователем или нет
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        static string PrimeNumber(int num)
+        static void Main(string[] args)
         {
-            string resume = NotPrime;
-            int d = 0;
-            int i = 2;
-            while (i < num)
+            int[,] A = new int[N, M];
+            int i, j;
+            for (j = 0; j < M; j++)
+                A[0, j] = 1; // Первая строка заполнена единицами
+            for (i = 1; i < N; i++)
             {
-                if (num % i == 0)
-                    d++;
-                i++;
+                A[i, 0] = 1;
+                for (j = 1; j < M; j++)
+                    A[i, j] = A[i, j - 1] + A[i - 1, j];
             }
 
-            if (d == 0)
-                resume = Prime;
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            Print2(N, M, A);
+            stopWatch.Stop();
+            Console.WriteLine(stopWatch.ElapsedMilliseconds);
+            stopWatch = Stopwatch.StartNew();
+            Print3(N, M, A);
+            stopWatch.Stop();
+            Console.WriteLine(stopWatch.ElapsedMilliseconds);
 
-            return resume;
-        }
-
-    static void Main(string[] args)
-        {
-            Console.WriteLine("Программа проверки простое число или нет.");
-            Console.WriteLine("Введите целое число: ");
-            int askNum = 0;
-            bool success = Int32.TryParse(Console.ReadLine(), out askNum);
-            // проверяемое число должно быть целым, иначе генерируем исключение
-            if (!success)
-            {
-                throw new ArgumentException("Не является целым");
-            }
-
-            // проводим проверку
-            string checkNumber = PrimeNumber(askNum);
-
-            Console.WriteLine($"Введено {checkNumber} число {askNum} ");
-
-            // проводим тесты корректности работы процедуры PrimeNumber
-            var testCase = new TestCase()
-            {
-                X = 4,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 6,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 3,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = NotPrime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
-
-            testCase = new TestCase()
-            {
-                X = 823,
-                Expected = Prime,
-                ExpectedException = null
-            };
-
-            TestPrimeNumber(testCase);
+            Console.WriteLine($"Количество путей из верхней левой клетки в правую нижнюю для поля {N}x{M} равно {A[N-1,M-1]}");
         }
     }
 }
